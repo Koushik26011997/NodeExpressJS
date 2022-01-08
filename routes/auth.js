@@ -311,7 +311,9 @@ router.post("/register", async (req, res) => {
               text: `Hi Nodex User,\n\nYour OTP is: ${OTP}\n\nPlease verify your OTP to Login now.`,
             };
 
-            await transporter.verify();
+            transporter.verify().then((status) => {
+              console.log("transporter", transporter);
+            });
 
             const result = await user.save();
 
@@ -322,14 +324,15 @@ router.post("/register", async (req, res) => {
             });
 
             transporter.sendMail(mailOptions, (err, response) => {
-              // if (err) {
-              //   console.log("Error: " + err);
-              // } else {
-              //   console.log("OTP Send Successfull", response);
-              // }
+              if (err) {
+                console.log("Error: " + err);
+              } else {
+                console.log("OTP Send Successfull", response);
+              }
             });
           } catch (error) {
             return res.status(400).json({
+              data: error,
               message: "Error",
               status: "fail",
             });
