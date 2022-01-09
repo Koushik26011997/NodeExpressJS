@@ -326,19 +326,18 @@ router.post("/register", async (req, res) => {
             });
 
             transporter.sendMail(mailOptions, (err, response) => {
-              // if (err) {
-              //   console.log("Error: " + err);
-              // } else {
-              //   console.log("OTP Send Successfull", response);
-              // }
+              if (err) {
+                console.log("Error: " + err);
+              } else {
+                console.log("OTP Send Successfull", response);
+              }
             });
           } catch (error) {
-            // return res.status(400).json({
-            //   data: error,
-            //   message: "Error in sending Email OTP",
-            //   status: "fail",
-            // });
-            // console.log("Error in sending Email OTP: " + error);
+            return res.status(400).json({
+              data: error,
+              message: "Error in sending Email OTP",
+              status: "fail",
+            });
           }
         }
       }
