@@ -301,7 +301,7 @@ router.post("/register", async (req, res) => {
 
           try {
             const transporter = nodemailer.createTransport({
-              service: "gmail",
+              service: "hotmail",
               auth: {
                 user: process.env.EMAIL_ID,
                 pass: process.env.EMAIL_PASS,
@@ -326,11 +326,11 @@ router.post("/register", async (req, res) => {
             });
 
             transporter.sendMail(mailOptions, (err, response) => {
-              if (err) {
-                console.log("Error: " + err);
-              } else {
-                console.log("OTP Send Successfull", response);
-              }
+              // if (err) {
+              //   console.log("Error: " + err);
+              // } else {
+              //   console.log("OTP Send Successfull", response);
+              // }
             });
           } catch (error) {
             return res.status(400).json({
