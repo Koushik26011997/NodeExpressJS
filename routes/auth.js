@@ -39,7 +39,7 @@ router.post("/login", async (req, res) => {
       status: "fail",
     });
   } else {
-    const token = jwt.sign({ _id: user._id }, "secret");
+    const token = jwt.sign({ _id: user._id }, process.env.SECRET);
 
     res.json({
       data: user,
@@ -205,6 +205,7 @@ router.post("/register", async (req, res) => {
 
   if (error) {
     return res.status(400).json({
+      data: null,
       message: error.details[0].message,
       status: "fail",
     });
@@ -222,19 +223,19 @@ router.post("/register", async (req, res) => {
     }
   } catch (error) {
     return res.status(400).json({
+      data: null,
       message: "Something went wrong, please try again later",
       status: "fail",
     });
   }
-
-  console.log("KP");
 
   const salt = await bcrypt.genSaltSync(10);
   const hashPassword = await bcrypt.hash(req.body.password, salt);
 
   if (!req.files) {
     return res.status(400).json({
-      message: "You must select a file",
+      data: null,
+      message: "You must select a image to upload",
       status: "fail",
     });
   }
@@ -245,7 +246,7 @@ router.post("/register", async (req, res) => {
   if (fileSize > 1024) {
     return res.status(400).json({
       data: null,
-      message: "File size must be less than 1 MB",
+      message: "Image size must be less than 1 MB",
       status: "fail",
     });
   }
@@ -253,7 +254,7 @@ router.post("/register", async (req, res) => {
   if (!allowedMimes.includes(userImage?.mimetype)) {
     return res.status(400).json({
       data: null,
-      message: "File extension must be jpg or png",
+      message: "Image extension must be jpg or png",
       status: "fail",
     });
   }
@@ -277,6 +278,12 @@ router.post("/register", async (req, res) => {
         } else {
           // console.log("File uploaded: ", image);
           // Successfullimage upload done, now insert data to MongoDB
+          // Remove the file from local folder
+
+          fs.unlink(userImage?.tempFilePath, (err) => {
+            // console.log("err", err);
+          });
+
           const OTP =
             Math.floor(1000 + Math.random() * 9000) ||
             Math.floor(1000 + Math.random() * 8000);
@@ -308,9 +315,7 @@ router.post("/register", async (req, res) => {
               text: `Hi Nodex User,\n\nYour OTP is: ${OTP}\n\nPlease verify your OTP to Login now.`,
             };
 
-            transporter.verify().then((status) => {
-              console.log("transporter", transporter);
-            });
+            await transporter.verify();
 
             const result = await user.save();
 
@@ -321,11 +326,11 @@ router.post("/register", async (req, res) => {
             });
 
             transporter.sendMail(mailOptions, (err, response) => {
-              if (err) {
-                console.log("Error: " + err);
-              } else {
-                console.log("OTP Send Successfull", response);
-              }
+              // if (err) {
+              //   console.log("Error: " + err);
+              // } else {
+              //   console.log("OTP Send Successfull", response);
+              // }
             });
           } catch (error) {
             return res.status(400).json({
