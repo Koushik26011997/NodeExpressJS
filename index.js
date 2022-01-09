@@ -24,7 +24,7 @@ app.use(
 );
 
 mongoose.connect(
-  "mongodb+srv://NodeXUser:NodeXUser@cluster0.pij5u.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+  process.env.DB_PATH,
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -37,9 +37,9 @@ mongoose.connect(
 );
 
 cloudinary.config({
-  cloud_name: "daej7rmtj",
-  api_key: "122323692313115",
-  api_secret: "nAClJpnjwrJ3QOTjYMGHmNeT9J0",
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
 });
 
 app.use("/api/user", authRouter);

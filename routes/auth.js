@@ -276,9 +276,6 @@ router.post("/register", async (req, res) => {
           });
         } else {
           // console.log("File uploaded: ", image);
-          fs.unlink(userImage?.tempFilePath, (res) => {
-            // console.log("res", res);
-          });
           // Successfullimage upload done, now insert data to MongoDB
           const OTP =
             Math.floor(1000 + Math.random() * 9000) ||
@@ -299,13 +296,13 @@ router.post("/register", async (req, res) => {
             const transporter = nodemailer.createTransport({
               service: "gmail",
               auth: {
-                user: "shopm5437@gmail.com",
-                pass: "Koushik@123",
+                user: process.env.EMAIL_ID,
+                pass: process.env.EMAIL_PASS,
               },
             });
 
             const mailOptions = {
-              from: "shopm5437@gmail.com",
+              from: process.env.EMAIL_ID,
               to: req.body.email,
               subject: "Nodex OTP Confirmation",
               text: `Hi Nodex User,\n\nYour OTP is: ${OTP}\n\nPlease verify your OTP to Login now.`,
@@ -333,7 +330,7 @@ router.post("/register", async (req, res) => {
           } catch (error) {
             return res.status(400).json({
               data: error,
-              message: "Error",
+              message: "Error in sending Email OTP",
               status: "fail",
             });
           }
