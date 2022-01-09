@@ -333,11 +333,12 @@ router.post("/register", async (req, res) => {
               // }
             });
           } catch (error) {
-            return res.status(400).json({
-              data: error,
-              message: "Error in sending Email OTP",
-              status: "fail",
-            });
+            // return res.status(400).json({
+            //   data: error,
+            //   message: "Error in sending Email OTP",
+            //   status: "fail",
+            // });
+            // console.log("Error in sending Email OTP: " + error);
           }
         }
       }
