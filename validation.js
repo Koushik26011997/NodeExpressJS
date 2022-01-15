@@ -13,6 +13,10 @@ const userloginschema = Joi.object({
   password: Joi.string().min(6).max(100).required(),
 });
 
+const userforgotpasswordschema = Joi.object({
+  email: Joi.string().min(6).max(100).required().email(),
+});
+
 const userotpvalidateschema = Joi.object({
   email: Joi.string().min(6).max(100).required().email(),
   otp: Joi.string().min(4).max(4).required(),
@@ -41,6 +45,10 @@ const userotpschemavalidation = (validation) => {
   return userotpvalidateschema.validate(validation);
 };
 
+const userforgotpasswordschemavalidation = (validation) => {
+  return userforgotpasswordschema.validate(validation);
+};
+
 module.exports.userregschemavalidation = userregschemavalidation;
 
 module.exports.userloginschemavalidation = userloginschemavalidation;
@@ -48,3 +56,6 @@ module.exports.userloginschemavalidation = userloginschemavalidation;
 module.exports.userupdateschemavalidation = userupdateschemavalidation;
 
 module.exports.userotpschemavalidation = userotpschemavalidation;
+
+module.exports.userforgotpasswordschemavalidation =
+  userforgotpasswordschemavalidation;

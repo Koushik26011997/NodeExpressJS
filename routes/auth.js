@@ -10,6 +10,7 @@ const {
   userloginschemavalidation,
   userupdateschemavalidation,
   userotpschemavalidation,
+  userforgotpasswordschemavalidation,
 } = require("../validation");
 const User = require("../models/User");
 
@@ -27,6 +28,7 @@ router.post("/login", async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user)
     return res.status(400).json({
+      data: null,
       message: "Invalid Email or Password!",
       status: "fail",
     });
@@ -38,9 +40,15 @@ router.post("/login", async (req, res) => {
       message: "User not found!",
       status: "fail",
     });
+  } else if (user?.status === "INACTIVE") {
+    res.json({
+      data: "OTP_CHECK_REQUIRED",
+      status: "fail",
+      message:
+        "This Email ID is not authenticated yet. Please validate this email with OTP before login",
+    });
   } else {
     const token = jwt.sign({ _id: user._id }, process.env.SECRET);
-
     res.json({
       data: user,
       token: token,
@@ -48,7 +56,6 @@ router.post("/login", async (req, res) => {
       message: "Login Successfull",
     });
   }
-  res.end();
 });
 
 // Single User Read Operation Code...
@@ -148,6 +155,112 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
+// Forgot Password Code...
+router.post("/forgot-password", async (req, res) => {
+  const { error } = userforgotpasswordschemavalidation(req.body);
+  if (error) {
+    return res.status(400).json({
+      message: error.details[0].message,
+      status: "fail",
+    });
+  }
+
+  try {
+    const OTP =
+      Math.floor(1000 + Math.random() * 9000) ||
+      Math.floor(1000 + Math.random() * 8000);
+
+    const user = await User.findOneAndUpdate(
+      { email: req.body.email },
+      {
+        $set: {
+          otp: OTP.toString(),
+        },
+      }
+    );
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Sorry, No user found!",
+        status: "fail",
+      });
+    } else {
+      const transporter = nodemailer.createTransport({
+        service: "hotmail",
+        auth: {
+          user: process.env.EMAIL_ID,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_ID,
+        to: req.body.email,
+        subject: "Nodex OTP Confirmation",
+        text: `Hi Nodex User,\n\nYour OTP is: ${OTP}\n\nPlease verify your OTP to Reset Password.`,
+      };
+
+      transporter.sendMail(mailOptions, (err, response) => {});
+
+      res.json({
+        status: "success",
+        message: "OTP has been sent. Please check your email for OTP",
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      data: error,
+      message: "Something went wrong, please try again later",
+      status: "fail",
+    });
+  } finally {
+    res.end();
+  }
+});
+
+// Reset Password Code...
+router.post("/reset-password", async (req, res) => {
+  const { error } = userloginschemavalidation(req.body);
+  if (error) {
+    return res.status(400).json({
+      message: error.details[0].message,
+      status: "fail",
+    });
+  }
+  try {
+    const salt = bcrypt.genSaltSync(10);
+    const hashPassword = await bcrypt.hash(req.body.password, salt);
+
+    const user = await User.findOneAndUpdate(
+      { email: req.body.email },
+      {
+        $set: {
+          password: hashPassword,
+        },
+      }
+    );
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Sorry, No user found!",
+        status: "fail",
+      });
+    } else {
+      res.json({
+        data: user,
+        status: "success",
+        message: "Password updated successfully",
+      });
+    }
+  } catch (error) {
+    return res.status(400).json({
+      data: error,
+      message: "Something went wrong, please try again later",
+      status: "fail",
+    });
+  }
+});
+
 //Validate OTP Code..
 router.post("/validate-otp", async (req, res) => {
   const { error } = userotpschemavalidation(req.body);
@@ -167,8 +280,6 @@ router.post("/validate-otp", async (req, res) => {
       status: "fail",
     });
 
-  // console.log("CHECK OTP: ", req.body.otp, user.otp);
-
   if (req.body.otp != user.otp) {
     return res.status(400).json({
       message: "OTP does not matched!",
@@ -187,7 +298,7 @@ router.post("/validate-otp", async (req, res) => {
     res.json({
       data: user,
       status: "success",
-      message: "Email validated successfully",
+      message: "Email verified successfully",
     });
   } catch (error) {
     return res.status(400).json({
