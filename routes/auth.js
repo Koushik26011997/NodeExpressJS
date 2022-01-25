@@ -246,6 +246,23 @@ router.post("/reset-password", async (req, res) => {
         status: "fail",
       });
     } else {
+      const transporter = nodemailer.createTransport({
+        service: "hotmail",
+        auth: {
+          user: process.env.EMAIL_ID,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_ID,
+        to: req.body.email,
+        subject: "Nodex Password Reset",
+        text: `Hi Nodex User,\n\nYour new password has been updated successfully.\n\nPlease login with your new password from now.`,
+      };
+
+      transporter.sendMail(mailOptions, (err, response) => {});
+      
       res.json({
         data: user,
         status: "success",
@@ -276,7 +293,7 @@ router.post("/validate-otp", async (req, res) => {
   });
   if (!user)
     return res.status(400).json({
-      message: "Invalid Email or Password!",
+      message: "Sorry, No user found!",
       status: "fail",
     });
 
