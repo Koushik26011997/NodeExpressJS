@@ -3,14 +3,14 @@ const Joi = require("joi");
 const userregschema = Joi.object({
   name: Joi.string().min(6).max(100).required(),
   email: Joi.string().min(6).max(100).required().email(),
-  password: Joi.string().min(6).max(100).required(),
+  password: Joi.string().min(6).max(20).required(),
   dob: Joi.string().min(6).max(100).required(),
   gender: Joi.string().required(),
 });
 
 const userloginschema = Joi.object({
   email: Joi.string().min(6).max(100).required().email(),
-  password: Joi.string().min(6).max(100).required(),
+  password: Joi.string().min(6).max(20).required(),
 });
 
 const userforgotpasswordschema = Joi.object({
